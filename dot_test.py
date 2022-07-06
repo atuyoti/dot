@@ -2,7 +2,6 @@ import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib import cm
 from matplotlib import colors
-from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.animation as animation
 import os
 from tqdm import tqdm
@@ -32,10 +31,10 @@ n_rel = 1.33
 rd = -1.440/n_rel**2 + 0.710/n_rel + 0.668 + 0.0636*n_rel
 A = (1+rd) / (1-rd)
 myu_a = np.ones((stepnum_y,stepnum_x))*0.1 #吸収率，あとでnumpy arrayから持ってくるように変更
-myu_a[50:100,240:260] = 100
+myu_a[100:150,100:150] = 100
 x = np.linspace(0,length_x,stepnum_x)
 y = np.linspace(0,length_y,stepnum_y)
-stepnum_time = 1000
+stepnum_time = 500
 
 ##################################
 #初期状態
@@ -67,7 +66,6 @@ def diffuse(nt):
 		phi[1:-1,1:-1] 	= c*dt*D*((phi_n[1:-1,2:] - 2 * phi_n[1:-1,1:-1] + phi_n[1:-1,0:-2]) / (dx**2)) \
 						+ c*dt*D*((phi_n[2:,1:-1] -2 * phi_n[1:-1,1:-1] + phi_n[0:-2,1:-1]) / (dy**2)) \
 						- ((c*dt*myu_a[1:-1,1:-1] - 1)*phi_n[1:-1,1:-1])
-
 		#境界条件
 		##y方向の境界条件
 		#入力面での境界条件
