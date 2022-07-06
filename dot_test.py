@@ -9,6 +9,7 @@ from tqdm import tqdm
 outputfile = "./image/dot_test2"
 if not os.path.isdir(outputfile):
 	os.makedirs(outputfile)
+	os.makedirs(outputfile+"/png")
 
 ##################################
 #条件設定
@@ -69,7 +70,7 @@ def diffuse(nt):
 		#境界条件
 		##y方向の境界条件
 		#入力面での境界条件
-		phi[:,0] = (1/(2*D*A+dy))*(2*D*A*phi_n[:,1] + (inputlight[:,nt] * (4*dy) / (1-rd)))
+		phi[:,1] = (1/(2*D*A+dy))*(2*D*A*phi_n[:,1] + (inputlight[:,nt] * (4*dy) / (1-rd)))
 
 		#出力面での境界条件
 		phi[:,-1] = phi_n[:,-2]*(2*D*A)/(2*D*A + dy)
@@ -83,7 +84,7 @@ def diffuse(nt):
 	bar1=ax1.imshow(phi, cmap=cm.jet,norm = colors.LogNorm(vmin = 0.00001,vmax =1))
 	fig.colorbar(bar1)
 	#plt.show()
-	fig.savefig(outputfile+"/{0:03d}.png".format(nt))
+	fig.savefig(outputfile+"/png/{0:03d}.png".format(nt))
 	np.save(outputfile+"/{0:03d}".format(nt),phi)
 	print(phi[int(center_y),3])
 
