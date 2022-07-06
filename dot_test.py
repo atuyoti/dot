@@ -15,15 +15,15 @@ if not os.path.isdir(outputfile):
 #条件設定
 ##################################
 #ピコ秒での計測
-stepnum_x = 501
-stepnum_y = 501
+stepnum_x = 251
+stepnum_y = 251
 length_x = 5
 length_y = 5
 dx = length_x / (stepnum_x - 1)
 dy = length_y / (stepnum_y - 1)
 sigma = .25
 #dt = sigma * dx * dy /nu
-dt = 0.003
+dt = 0.002
 g = 0 #非等方散乱パラメータ，あとで場所ごとに変わるように変更
 myu_s = 10 #散乱係数，あとで場所ごとに変わるように変更
 c = 0.225600000 #mm/ps
@@ -58,8 +58,8 @@ def diffuse(nt):
 	for n in range(nt + 1):
 		phi_n = phi.copy()
 		"""
-		u[1:-1,1:-1] = (un[1:-1,1:-1] + 
-				nu * dt / dx**2 * 
+		u[1:-1,1:-1] = (un[1:-1,1:-1] +
+				nu * dt / dx**2 *
 				(un[1:-1,2:] -2 * un[1:-1,1:-1] + un[1:-1,0:-2]) +
 				nu * dt / dy**2 *
 				(un[2:,1:-1] -2 * un[1:-1,1:-1] + un[0:-2,1:-1]))
@@ -69,12 +69,6 @@ def diffuse(nt):
 						- ((c*dt*myu_a[1:-1,1:-1] - 1)*phi_n[1:-1,1:-1])
 
 		#境界条件
-		"""
-		phi[0,:] = 0
-		phi[-1,:] = 1
-		phi[:,0] = 1
-		phi[:,-1] = 1
-		"""
 		##y方向の境界条件
 		#入力面での境界条件
 		phi[:,0] = (1/(2*D*A+dy))*(2*D*A*phi_n[:,1] + (inputlight[:,nt] * (4*dy) / (1-rd)))
