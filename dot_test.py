@@ -4,6 +4,7 @@ from matplotlib import cm
 from matplotlib import colors
 import matplotlib.animation as animation
 import os
+import sys
 from tqdm import tqdm
 
 outputfile = "./image/dot_test2"
@@ -36,6 +37,19 @@ myu_a[100:150,100:150] = 100
 x = np.linspace(0,length_x,stepnum_x)
 y = np.linspace(0,length_y,stepnum_y)
 stepnum_time = 500
+
+######
+fig = plt.figure()
+fig, ax1= plt.subplots(1, 1, figsize=(8, 4.5),sharex=True, sharey=True)
+ax1.set_title("myu_a")
+bar1=ax1.imshow(myu_a, cmap=cm.Greys)
+fig.colorbar(bar1)
+#plt.show()
+fig.savefig(outputfile+"/png/myu_a.png")
+np.save(outputfile+"/myu_a",myu_a)
+plt.clf()
+plt.close()
+####
 
 ##################################
 #初期状態
