@@ -7,7 +7,7 @@ import os
 import sys
 from tqdm import tqdm
 
-outputfile = "./image/dot_test2"
+outputfile = "./image/dot_without_ab"
 if not os.path.isdir(outputfile):
 	os.makedirs(outputfile)
 	os.makedirs(outputfile+"/png")
@@ -33,7 +33,7 @@ n_rel = 1.33
 rd = -1.440/n_rel**2 + 0.710/n_rel + 0.668 + 0.0636*n_rel
 A = (1+rd) / (1-rd)
 myu_a = np.ones((stepnum_y,stepnum_x))*0.1 #吸収率，あとでnumpy arrayから持ってくるように変更
-myu_a[100:150,100:150] = 100
+#myu_a[100:150,100:150] = 100
 x = np.linspace(0,length_x,stepnum_x)
 y = np.linspace(0,length_y,stepnum_y)
 stepnum_time = 500
