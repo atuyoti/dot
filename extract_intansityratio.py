@@ -3,21 +3,24 @@ from matplotlib import pyplot as plt
 from matplotlib import cm
 from matplotlib import colors
 import os
-import math 
+import math
+
+import dot_parameter
 
 inputfilepath1 = "./image/dot_with_ab/"
 inputfilepath2 = "./image/dot_without_ab/"
 outputfile = "./image/graph/intensity_ratio"
 
-stepnum_time = 500
-stepnum_y = 251
-dt = 0.002 #ps
+myClass = dot_parameter.Dot()
+stepnum_time = myClass.stepnum_time
+stepnum_y = myClass.stepnum_y
+dt = myClass.dt #ps
 
 def main():
 	if not os.path.isdir(outputfile):
 		os.makedirs(outputfile)
 
-	
+
 	for i in range(stepnum_time):
 		filename = "{0:03d}.npy".format(i)
 		phi_with_ab = np.load(inputfilepath1+filename)
@@ -31,6 +34,7 @@ def main():
 				else:
 					phi_log[j,l] = - math.log(phi_ratio[j,l])
 
+		np.save(outputfile+"/{0:03d}".format(i),phi_log)
 		fig = plt.figure()
 		fig, ax1= plt.subplots(1, 1, figsize=(8, 4.5),sharex=True, sharey=True)
 		ax1.set_title("intensity ratio:"+str(i))
