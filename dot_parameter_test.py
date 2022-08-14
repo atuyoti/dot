@@ -4,10 +4,10 @@ from matplotlib import pyplot as plt
 import os
 
 class Dot:
-	stepnum_x = 251
-	stepnum_y = 251
-	length_x = 5
-	length_y = 5
+	stepnum_x = 51
+	stepnum_y = 51
+	length_x = 1
+	length_y = 1
 	dx = length_x / (stepnum_x - 1)
 	dy = length_y / (stepnum_y - 1)
 	dt = 0.002
@@ -20,18 +20,18 @@ class Dot:
 	A = (1+rd) / (1-rd)
 	myu_a_without = np.ones((stepnum_y,stepnum_x))*0.1 #吸収率，あとでnumpy arrayから持ってくるように変更
 	myu_tmp = np.copy(myu_a_without)
-	myu_tmp[100:150,100:150] = 100
+	myu_tmp[20:25,20:25] = 100
 	myu_a_with = myu_tmp
 	x = np.linspace(0,length_x,stepnum_x)
 	y = np.linspace(0,length_y,stepnum_y)
-	stepnum_time = 500
+	stepnum_time = 220
 	num_detector = 1
-	pos_detector = np.array([[125,-1],[]])
+	pos_detector = np.array([[25,-1],[]])
 	center_y = stepnum_y/2
 	num_light = 1
 	pos_light = np.array([[center_y,0],[]])
 
-	def pulse(self,amp=10,t1=15,t2=5,dlen=500,_dt=1):
+	def pulse(self,amp=10,t1=15,t2=5,dlen=stepnum_time,_dt=1):
 		t = np.linspace(0,_dt*(dlen-1),dlen)
 		y = amp * (np.exp(-((t-t1) ** 2)/(t2 ** 2)))
 		print(y.shape)
