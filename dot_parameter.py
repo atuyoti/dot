@@ -25,11 +25,6 @@ class Dot:
 	x = np.linspace(0,length_x,stepnum_x)
 	y = np.linspace(0,length_y,stepnum_y)
 	stepnum_time = 500
-	num_detector = 1
-	pos_detector = np.array([[125,-1],[]])
-	center_y = stepnum_y/2
-	num_light = 1
-	pos_light = np.array([[center_y,0],[]])
 
 	def pulse(self,amp=10,t1=15,t2=5,dlen=500,_dt=1):
 		t = np.linspace(0,_dt*(dlen-1),dlen)

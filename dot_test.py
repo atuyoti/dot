@@ -7,9 +7,9 @@ import os
 import sys
 from tqdm import tqdm
 
-import dot_parameter_test
+import dot_parameter
 
-outputfile = "./image/dot_50x50_with_ab"
+outputfile = "./image/dot_with_ab"
 if not os.path.isdir(outputfile):
 	os.makedirs(outputfile)
 	os.makedirs(outputfile+"/png")
@@ -18,7 +18,7 @@ if not os.path.isdir(outputfile):
 #条件設定
 ##################################
 #ピコ秒での計測
-myClass = dot_parameter_test.Dot()
+myClass = dot_parameter.Dot()
 stepnum_x = myClass.stepnum_x
 stepnum_y = myClass.stepnum_y
 length_x = myClass.length_x
@@ -63,8 +63,8 @@ print(phi.shape)
 #入力光源，あとで時間変化する形にする
 inputlight = np.zeros((stepnum_y,stepnum_time))
 center_y = stepnum_y/2
-start_y = center_y-1
-end_y = center_y+1
+start_y = center_y-10
+end_y = center_y+10
 #inputlight[int(start_y):int(end_y),0:5] = 10
 inputlight[int(start_y):int(end_y),:] = myClass.pulse()
 
@@ -84,10 +84,10 @@ def diffuse(nt):
 		phi[:,1] = (1/(2*D*A+dy))*(2*D*A*phi_n[:,1] + (inputlight[:,nt] * (4*dy) / (1-rd)))
 
 		#出力面での境界条件
-		phi[:,-2] = phi_n[:,-3]*(2*D*A)/(2*D*A + dy)
+		phi[:,-1] = phi_n[:,-2]*(2*D*A)/(2*D*A + dy)
 		##x方向の境界条件
 		phi[1,:] = phi_n[2,:]*(2*D*A)/(2*D*A + dx)
-		phi[-2,:] = phi_n[-3,:]*(2*D*A)/(2*D*A + dx)
+		phi[-1,:] = phi_n[-2,:]*(2*D*A)/(2*D*A + dx)
 
 
 	fig = plt.figure()
