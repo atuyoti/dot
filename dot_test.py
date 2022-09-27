@@ -7,9 +7,9 @@ import os
 import sys
 from tqdm import tqdm
 
-import dot_parameter
+import dot_parameter_test
 
-outputfile = "./image/dot_with_ab"
+outputfile = "./image/dot_with_ab_50x100"
 if not os.path.isdir(outputfile):
 	os.makedirs(outputfile)
 	os.makedirs(outputfile+"/png")
@@ -18,7 +18,7 @@ if not os.path.isdir(outputfile):
 #条件設定
 ##################################
 #ピコ秒での計測
-myClass = dot_parameter.Dot()
+myClass = dot_parameter_test.Dot()
 stepnum_x = myClass.stepnum_x
 stepnum_y = myClass.stepnum_y
 length_x = myClass.length_x
@@ -34,12 +34,14 @@ n_rel = myClass.n_rel
 rd = myClass.rd
 A = myClass.A
 myu_a = myClass.myu_a_with
+#myu_a = myClass.myu_a_without
 x = myClass.x
 y = myClass.y
 stepnum_time = myClass.stepnum_time
 
 
-######
+
+
 fig = plt.figure()
 fig, ax1= plt.subplots(1, 1, figsize=(8, 4.5),sharex=True, sharey=True)
 ax1.set_title("myu_a")
@@ -50,28 +52,32 @@ fig.savefig(outputfile+"/png/myu_a.png")
 np.save(outputfile+"/myu_a",myu_a)
 plt.clf()
 plt.close()
-####
 
 ##################################
 #初期状態
 ##################################
-phi = np.zeros((stepnum_y,stepnum_x),dtype = np.float64)
-phi_n = np.zeros((stepnum_y,stepnum_x),dtype = np.float64)
+phi = np.zeros((stepnum_x,stepnum_y),dtype = np.float64)
+phi_n = np.zeros((stepnum_x,stepnum_y),dtype = np.float64)
 #u[int(.5 / dy):int(1 / dy+1),int(.5 / dx):int(1 / dx + 1)] = 2
 print(phi.shape)
-
+ 
 #入力光源，あとで時間変化する形にする
-inputlight = np.zeros((stepnum_y,stepnum_time))
-center_y = stepnum_y/2
-start_y = center_y-10
-end_y = center_y+10
+inputlight = np.zeros((stepnum_x,stepnum_time))
+center_x = stepnum_x/2
+start_x = center_x-10
+end_x = center_x+10
 #inputlight[int(start_y):int(end_y),0:5] = 10
-inputlight[int(start_y):int(end_y),:] = myClass.pulse()
+#inputlight[int(start_y):int(end_y),:] = myClass.pulse()
+num_light = myClass.num_light
+pos_light = myClass.pos_light
+print(pos_light.shape)
+#for i in range(num_light):
+#	inputlight[int(pos_light[i,0]),:] = myClass.pulse()
 
 #######################################
-def diffuse(nt):
+def diffuse(nt,nlight):
 	phi[:,0] = inputlight[:,nt]
-	print("%s : %i" %(nt,inputlight[int(center_y),nt]))
+	print("%s : %i" %(nt,inputlight[int(center_x),nt]))
 	for n in range(nt + 1):
 		phi_n = phi.copy()
 
@@ -81,13 +87,13 @@ def diffuse(nt):
 		#境界条件
 		##y方向の境界条件
 		#入力面での境界条件
-		phi[:,1] = (1/(2*D*A+dy))*(2*D*A*phi_n[:,1] + (inputlight[:,nt] * (4*dy) / (1-rd)))
+		phi[:,1] = (1/(2*D*A+dy))*(2*D*A*phi_n[:,2] + (inputlight[:,nt] * (4*dy) / (1-rd)))
 
 		#出力面での境界条件
-		phi[:,-1] = phi_n[:,-2]*(2*D*A)/(2*D*A + dy)
+		phi[:,-2] = phi_n[:,-3]*(2*D*A)/(2*D*A + dy)
 		##x方向の境界条件
 		phi[1,:] = phi_n[2,:]*(2*D*A)/(2*D*A + dx)
-		phi[-1,:] = phi_n[-2,:]*(2*D*A)/(2*D*A + dx)
+		phi[-2,:] = phi_n[-3,:]*(2*D*A)/(2*D*A + dx)
 
 
 	fig = plt.figure()
@@ -97,10 +103,14 @@ def diffuse(nt):
 	bar1=ax1.imshow(phi, cmap=cm.jet,norm = colors.LogNorm(vmin = 0.00001,vmax =1))
 	fig.colorbar(bar1)
 	#plt.show()
-	fig.savefig(outputfile+"/png/{0:03d}.png".format(nt))
-	np.save(outputfile+"/{0:03d}".format(nt),phi)
-	print(phi[int(center_y),3])
+	fig.savefig(outputfile+"/png/{0:d}-{1:03d}.png".format(nlight,nt))
+	np.save(outputfile+"/{0:d}-{1:03d}".format(nlight,nt),phi)
+	print(phi[int(center_x),3])
 
-
-for i in range(stepnum_time):
-		diffuse(i)
+for j in range(num_light):
+	inputlight[int(pos_light[j,0]),:] = myClass.pulse()
+	phi = np.zeros((stepnum_x,stepnum_y),dtype = np.float64)
+	phi_n = np.zeros((stepnum_x,stepnum_y),dtype = np.float64) 
+	for i in range(stepnum_time):
+		diffuse(i,j)
+	inputlight = np.zeros((stepnum_x,stepnum_time))

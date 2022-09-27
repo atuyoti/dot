@@ -74,7 +74,7 @@ def diffuse(nt,y,x,t_d,h_xi_j,h_j_x):
 		#境界条件
 		##y方向の境界条件
 		#入力面での境界条件
-		phi[:,1] = (1/(2*D*A+dy))*(2*D*A*phi_n[:,1] + (inputlight[:,nt] * (4*dy) / (1-rd)))
+		phi[:,1] = (1/(2*D*A+dy))*(2*D*A*phi_n[:,2] + (inputlight[:,nt] * (4*dy) / (1-rd)))
 
 		#出力面での境界条件
 		phi[:,-2] = phi_n[:,-3]*(2*D*A)/(2*D*A + dy)
