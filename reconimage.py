@@ -7,9 +7,9 @@ import itertools
 
 import dot_parameter_test
 
-inputdir = "./image/graph/intensity_ratio/50x100"
+inputdir = "./image/graph/intensity_ratio/50x100_2"
 filename = "/ratio.npy"
-outputdir = "./image/graph/intensity_ratio/50x100"
+outputdir = "./image/graph/intensity_ratio/50x100_2"
 myClass = dot_parameter_test.Dot()
 stepnum_time = myClass.stepnum_time
 stepnum_x = myClass.stepnum_x

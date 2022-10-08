@@ -7,9 +7,9 @@ import os
 
 import dot_parameter_test
 
-inputfilepath1 = "./image/dot_with_ab_50x100/"
-inputfilepath2 = "./image/dot_without_ab_50x100/"
-outputfile = "./image/graph/intensity_ratio/50x100"
+inputfilepath1 = "./image/dot_with_ab_50x100_2/"
+inputfilepath2 = "./image/dot_without_ab_50x100_2/"
+outputfile = "./image/graph/intensity_ratio/50x100_2"
 
 myClass = dot_parameter_test.Dot()
 stepnum_time = myClass.stepnum_time

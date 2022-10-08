@@ -4,10 +4,10 @@ from matplotlib import pyplot as plt
 import os
 
 class Dot:
-	stepnum_x = 101
-	stepnum_y = 51
-	length_x = 2
-	length_y = 1
+	stepnum_x = 21
+	stepnum_y = 21
+	length_x = 0.4
+	length_y = 0.4
 	dx = length_x / (stepnum_x - 1)
 	dy = length_y / (stepnum_y - 1)
 	dt = 0.002 #ps 0.002
@@ -27,12 +27,14 @@ class Dot:
 	y = np.linspace(0,length_y,stepnum_y)
 	stepnum_time = 1000
 	accum_time = 100
+	accum_time_array = np.arange(stepnum_time,step=accum_time)
+	accum_time_array = np.delete(accum_time_array,0)
 	num_detector = 1
-	pos_detector = np.array([[10,-2],[]])
+	pos_detector = np.array([[5,-2],[15,-2]])
 	center_x = (stepnum_x-1)/2
-	num_light = 9
+	num_light = 3
 	#pos_light = np.array([[center_y,0],[5,0],[15,0]])
-	pos_light = np.array([[10,0],[20,0],[30,0],[40,0],[50,0],[60,0],[70,0],[80,0],[90,0]])
+	pos_light = np.array([[5,0],[10,0],[15,0]])
 
 	def pulse(self,amp=10,t1=15,t2=5,dlen=stepnum_time,_dt=1):
 		t = np.linspace(0,_dt*(dlen-1),dlen)
