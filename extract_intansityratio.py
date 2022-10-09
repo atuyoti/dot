@@ -5,13 +5,13 @@ from matplotlib import colors
 import os
 
 
-import dot_parameter_test
+import dot_parameter_test2
 
-inputfilepath1 = "./image/dot_with_ab_50x100_2/"
-inputfilepath2 = "./image/dot_without_ab_50x100_2/"
-outputfile = "./image/graph/intensity_ratio/50x100_2"
+inputfilepath1 = "./image/dot_with_ab_20x20_3light2detec/"
+inputfilepath2 = "./image/dot_without_ab_20x20_3light2detec/"
+outputfile = "./image/graph/intensity_ratio/20x20_3light2detec"
 
-myClass = dot_parameter_test.Dot()
+myClass = dot_parameter_test2.Dot()
 stepnum_time = myClass.stepnum_time
 stepnum_x = myClass.stepnum_x
 dt = myClass.dt #ps

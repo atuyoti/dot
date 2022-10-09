@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 import dot_parameter_test2
 
-outputfile = "./image/dot_with_ab_20x20_3light"
+outputfile = "./image/dot_without_ab_20x20_3light2detec"
 if not os.path.isdir(outputfile):
 	os.makedirs(outputfile)
 	os.makedirs(outputfile+"/png")
@@ -33,8 +33,8 @@ D = myClass.D #光拡散係数
 n_rel = myClass.n_rel
 rd = myClass.rd
 A = myClass.A
-myu_a = myClass.myu_a_with
-#myu_a = myClass.myu_a_without
+#myu_a = myClass.myu_a_with
+myu_a = myClass.myu_a_without
 x = myClass.x
 y = myClass.y
 stepnum_time = myClass.stepnum_time

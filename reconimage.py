@@ -5,12 +5,12 @@ from matplotlib import colors
 import os
 import itertools
 
-import dot_parameter_test
+import dot_parameter_test2
 
-inputdir = "./image/graph/intensity_ratio/50x100_2"
+inputdir = "./image/graph/intensity_ratio/20x20_3light2detec"
 filename = "/ratio.npy"
-outputdir = "./image/graph/intensity_ratio/50x100_2"
-myClass = dot_parameter_test.Dot()
+outputdir = "./image/graph/intensity_ratio/20x20_3light2detec"
+myClass = dot_parameter_test2.Dot()
 stepnum_time = myClass.stepnum_time
 stepnum_x = myClass.stepnum_x
 stepnum_y = myClass.stepnum_y
