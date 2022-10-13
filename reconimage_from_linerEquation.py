@@ -8,14 +8,15 @@ import sys
 from tqdm import tqdm
 import itertools
 import math
+from scipy.sparse.linalg import cg
 
 import dot_parameter_test2
 
 inputfile1 = "./image/dot_without_ab_20x20_3light2detec/"
 inputfile2 = "./image/dot_with_ab_20x20_3light2detec/"
-inputfile3 = "./image/pathlength_test3/"
+inputfile3 = "./image/pathlength_test2/"
 
-outputfile = "./image/pathlength_test3"
+outputfile = "./image/reconimage"
 if not os.path.isdir(outputfile):
 	os.makedirs(outputfile)
 	os.makedirs(outputfile+"/png")
@@ -82,16 +83,18 @@ def load_and_calc_ratio(ac_time_array):
 			B_data[index,:,:] = np.load(filename_B)
 			T_data[index,:,:] = np.load(filename_T)
 
-			B[index_light,index] = B_data[index,pos_detector[0,0],pos_detector[0,1]]
-			B[index_light+1,index]=B_data[index,pos_detector[1,0],pos_detector[1,1]]
-			T[index_light,index] = T_data[index,pos_detector[0,0],pos_detector[0,1]]
-			T[index_light+1,index]=T_data[index,pos_detector[1,0],pos_detector[1,1]]
+			B[index_light*2,index] = B_data[index,pos_detector[0,0],pos_detector[0,1]]
+			B[(index_light*2)+1,index] = B_data[index,pos_detector[1,0],pos_detector[1,1]]
+			T[index_light*2,index] = T_data[index,pos_detector[0,0],pos_detector[0,1]]
+			T[(index_light*2)+1,index] = T_data[index,pos_detector[1,0],pos_detector[1,1]]
 
 	y_i = B / T
 	y_i = np.where(y_i!=0,-np.log(y_i),y_i)
+	y_i = np.where(np.isnan(y_i), 0 ,y_i)
 	y_i_reshape = np.reshape(y_i,(y_i.shape[0]*y_i.shape[1]))
-	print(y_i.shape)
-	print(y_i_reshape.shape)
+	#print(y_i.shape)
+	print("y_i:"+str(y_i.shape))
+	print(y_i)
 	"""
 	light num - detector num - timestep
 	0 - 0 - 10
@@ -118,6 +121,7 @@ def convert2Dto1D(test_array):
 	return test_
 
 def crop_array(array):
+	#対象領域のみにクロップ
 	crop = array[1:-1,1:-1]
 	return crop
 
@@ -134,16 +138,13 @@ def load_Hj_and_calc_lightpath():
 				H_j_flat = convert2Dto1D(crop_array(H_j_temp[k,:,:]))
 				H_j[index,:] = H_j_flat
 				H_j_sum = np.sum(H_j,axis=1)
-				L_j[index,:] = H_j[index,:] / H_j_sum[index] * c * time
+				L_j[index,:] = (H_j[index,:] / H_j_sum[index]) * c * time
 	
 	return L_j
 
 
-
-
 def test():
 
-	load_Hj_and_calc_lightpath()
 	return
 
 def main():
@@ -152,12 +153,31 @@ def main():
 	x_ref = convert2Dto1D(myu_a_crop)
 	x = np.zeros_like(x_ref)
 	L = load_Hj_and_calc_lightpath()
+	L_T = L.T
+	a = L_T.dot(L)
+	b = L_T.dot(y)
+
 	print("y:"+str(y.shape))
 	print("x_ref:"+str(x_ref.shape))
 	print("L:"+str(L.shape))
+	print(a.dtype)
+	print(b.dtype)
+	x_ans = cg(a,b)[0]
+	x_ans_array = np.asarray(x_ans)
+	print(x_ans_array.shape)
+	x = x_ans_array+x_ref
+	x_reshape = np.reshape(x,[stepnum_x-2,stepnum_y-2])
 
 
-#for index_light in tqdm(range(num_light),leave=False):
+	fig = plt.figure()
+	fig, ax1= plt.subplots(1, 1, figsize=(8, 4.5),sharex=True, sharey=True)
+	bar1=ax1.imshow(x_reshape, cmap=cm.jet)
+	fig.colorbar(bar1)
+	#plt.show()
+	fig.savefig(outputfile+"/test.png")
+	plt.close(fig)
+
+
 
 
 if __name__ == '__main__':
