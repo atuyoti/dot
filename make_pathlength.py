@@ -8,9 +8,9 @@ import sys
 from tqdm import tqdm
 import itertools
 
-import dot_parameter_test2
+import dot_parameter_test20x20
 
-outputfile = "./image/pathlength_test2"
+outputfile = "./image/pathlength_20x20_3"
 if not os.path.isdir(outputfile):
 	os.makedirs(outputfile)
 	os.makedirs(outputfile+"/png")
@@ -19,7 +19,7 @@ if not os.path.isdir(outputfile):
 #条件設定
 ##################################
 #ピコ秒での計測
-myClass = dot_parameter_test2.Dot()
+myClass = dot_parameter_test20x20.Dot()
 stepnum_x = myClass.stepnum_x
 stepnum_y = myClass.stepnum_y
 length_x = myClass.length_x
@@ -34,7 +34,7 @@ D = myClass.D #光拡散係数
 n_rel = myClass.n_rel
 rd = myClass.rd
 A = myClass.A
-myu_a = myClass.myu_a_with
+myu_a = myClass.myu_a_without
 x = myClass.x
 y = myClass.y
 stepnum_time = myClass.stepnum_time
@@ -77,7 +77,7 @@ def calc_xi_to_j_probDens(phi,x,y):
 	if phi_j==0:
 		h_xi_j = 0
 	else:
-		h_xi_j = phi_j/ intensity
+		h_xi_j = phi_j / intensity
 	
 	return h_xi_j,phi,phi_j
 
@@ -112,15 +112,16 @@ def diffuse(phi,nt):
 
 	return phi
 
+
 def calc_H_j(x,y,nlight,phi,ac_time,ndetec):
 	#in:(x,y)座標，初期化された強度分布phi，計測時間
 	#out:あるピクセルの存在確立H_j(float)
 	H_j_array = np.zeros((ac_time.shape[0]))
-	H_j = 0
 	inputlight[int(pos_light[nlight,0]),0] = intensity
 	for t_d in tqdm(range(stepnum_time),leave=False,desc="t_d"):
 		h_xi_j = -1
 		h_j_x = -1
+		H_j = 0
 		index = 0
 		ac_time_tmp = np.copy(ac_time)
 		for t in range(stepnum_time):
@@ -130,9 +131,8 @@ def calc_H_j(x,y,nlight,phi,ac_time,ndetec):
 				h_xi_j,phi,phi_j = calc_xi_to_j_probDens(phi,x,y)
 
 			#時刻tの時のピクセルxの存在確立を求める
-			if  t in ac_time_tmp and t==ac_time_tmp[index] and t>=t_d:
+			if ac_time_tmp.size!=0 and t==ac_time_tmp[0] and t>=t_d:
 				h_j_x = calc_j_to_x_probDens(phi,phi_j,ndetec)
-				ac_time_tmp = np.delete(ac_time_tmp,index)
 
 			#時刻t'にピクセルjに光子が存在しない場合
 			if h_xi_j==0:
@@ -146,23 +146,35 @@ def calc_H_j(x,y,nlight,phi,ac_time,ndetec):
 			elif h_xi_j>0 and h_j_x>0:
 				h_j = h_xi_j * h_j_x
 				H_j = H_j + (h_j*dt)
-			if t in ac_time_tmp:
+
+			if ac_time_tmp.size!=0 and t == ac_time_tmp[0]:
 				#tqdm.write("{0}-{1}".format(t,H_j))
-				H_j_array[index] = H_j
+				H_j_array[index] = H_j_array[index] + H_j
 				index = index+1
+				ac_time_tmp = np.delete(ac_time_tmp,0)
 	return H_j_array
 
 
+def test():
+	for i in range(5):
+		for j in range(i+1):
+			print("{0}-{1}".format(i,j))
 
-for index_detec in tqdm(range(num_detector)):
-	for index_light in tqdm(range(num_light),leave=False):
-		all_num = itertools.product(range(1,stepnum_x-1),range(1,stepnum_y-1))
-		for i, j in tqdm(all_num,desc="x,y",leave=False):
-			#tqdm.write("{0}-{1}".format(i,j))
-			phi = np.zeros((stepnum_x,stepnum_y),dtype = np.float64)
-			H_j[:,i,j] = calc_H_j(i,j,index_light,phi,accum_time_array,index_detec)
+
+def main():
+	for index_detec in tqdm(range(num_detector)):
+		for index_light in tqdm(range(num_light),leave=False):
+			all_num = itertools.product(range(1,stepnum_x-1),range(1,stepnum_y-1))
+			for i, j in tqdm(all_num,desc="x,y",leave=False):
+				#tqdm.write("{0}-{1}".format(i,j))
+				phi = np.zeros((stepnum_x,stepnum_y),dtype = np.float64)
+				H_j[:,i,j] = calc_H_j(i,j,index_light,phi,accum_time_array,index_detec)
+
 			
 
 		np.save(outputfile+"/H_map_{0:02d}-{1:02d}".format(index_light,index_detec),H_j)
 
 
+if __name__ == '__main__':
+	main()
+	#test()

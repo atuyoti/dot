@@ -9,7 +9,7 @@ from tqdm import tqdm
 import itertools
 import math
 
-import dot_parameter_test2
+import dot_parameter_test20x20
 
 outputfile = "./image/pathlength_test3"
 if not os.path.isdir(outputfile):
@@ -20,7 +20,7 @@ if not os.path.isdir(outputfile):
 #条件設定
 ##################################
 #ピコ秒での計測
-myClass = dot_parameter_test2.Dot()
+myClass = dot_parameter_test20x20.Dot()
 stepnum_x = myClass.stepnum_x
 stepnum_y = myClass.stepnum_y
 length_x = myClass.length_x
@@ -68,6 +68,7 @@ def calc_distance(x1,y1,x2,y2):
 
 #存在確立の計算
 def calc_exisProb(distance):
+	#Microscopic beer-lambert法則
 	prob = math.exp(- myu_a[10,10]*distance)
 	return prob
 

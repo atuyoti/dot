@@ -10,7 +10,7 @@ class Dot:
 	length_y = 1
 	dx = length_x / (stepnum_x - 1)
 	dy = length_y / (stepnum_y - 1)
-	dt = 0.002 #ps 0.002
+	dt = 0.004 #ps 0.002
 	g = 0 #非等方散乱パラメータ，あとで場所ごとに変わるように変更
 	myu_s = 10 #散乱係数，あとで場所ごとに変わるように変更
 	c = 0.225600000 #mm/ps
@@ -20,15 +20,19 @@ class Dot:
 	A = (1+rd) / (1-rd)
 	myu_a_without = np.ones((stepnum_x,stepnum_y))*0.1 #吸収率，あとでnumpy arrayから持ってくるように変更
 	myu_tmp = np.copy(myu_a_without)
-	myu_tmp[50:54,20:25] = 100
+	myu_tmp[50:55,20:25] = 100
+	myu_tmp[80:90,10:20] = 100
+	myu_tmp[25:30,35:40] = 80
 	#myu_tmp[5:7,5:7] = 50
 	myu_a_with = myu_tmp
 	x = np.linspace(0,length_x,stepnum_x)
 	y = np.linspace(0,length_y,stepnum_y)
-	stepnum_time = 1000
-	accum_time = 100
-	num_detector = 1
-	pos_detector = np.array([[10,-2],[]])
+	stepnum_time = 1001
+	accum_time = 10
+	accum_time_array = np.arange(stepnum_time,step=accum_time)
+	accum_time_array = np.delete(accum_time_array,0)
+	num_detector = 6
+	pos_detector = np.array([[10,-2],[20,-2],[30,-2],[70,-2],[80,-2],[90,-2]])
 	center_x = (stepnum_x-1)/2
 	num_light = 9
 	#pos_light = np.array([[center_y,0],[5,0],[15,0]])

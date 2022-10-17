@@ -10,11 +10,11 @@ import itertools
 import math
 from scipy.sparse.linalg import cg
 
-import dot_parameter_test2
+import dot_parameter_test20x20
 
 inputfile1 = "./image/dot_without_ab_20x20_3light2detec/"
 inputfile2 = "./image/dot_with_ab_20x20_3light2detec/"
-inputfile3 = "./image/pathlength_test2/"
+inputfile3 = "./image/pathlength_20x20/"
 
 outputfile = "./image/reconimage"
 if not os.path.isdir(outputfile):
@@ -25,7 +25,7 @@ if not os.path.isdir(outputfile):
 #条件設定
 ##################################
 #ピコ秒での計測
-myClass = dot_parameter_test2.Dot()
+myClass = dot_parameter_test20x20.Dot()
 stepnum_x = myClass.stepnum_x
 stepnum_y = myClass.stepnum_y
 length_x = myClass.length_x
@@ -88,6 +88,8 @@ def load_and_calc_ratio(ac_time_array):
 			T[index_light*2,index] = T_data[index,pos_detector[0,0],pos_detector[0,1]]
 			T[(index_light*2)+1,index] = T_data[index,pos_detector[1,0],pos_detector[1,1]]
 
+	B = np.where(np.isnan(B), 0 ,B)
+	T = np.where(np.isnan(T), 0 ,T)
 	y_i = B / T
 	y_i = np.where(y_i!=0,-np.log(y_i),y_i)
 	y_i = np.where(np.isnan(y_i), 0 ,y_i)
@@ -132,18 +134,23 @@ def load_Hj_and_calc_lightpath():
 	for i in range(num_light):
 		for j in range(num_detector):
 			H_j_temp =  np.load(inputfile3+"H_map_{0:02d}-{1:02d}.npy".format(i,j))
-
 			for k,time in enumerate(accum_time_array):
+				I_map = np.load(inputfile1+"{0}-{1:03d}.npy".format(i,time))
+				I_r = I_map[pos_detector[j,0],pos_detector[j,1]]
+				print(I_r)
 				index = (i*num_detector*accum_time_array.shape[0]) + (j*accum_time_array.shape[0]) + k
 				H_j_flat = convert2Dto1D(crop_array(H_j_temp[k,:,:]))
 				H_j[index,:] = H_j_flat
 				H_j_sum = np.sum(H_j,axis=1)
 				L_j[index,:] = (H_j[index,:] / H_j_sum[index]) * c * time
+				#L_j[index,:] = (H_j[index,:] / I_r) * c
 	
 	return L_j
 
 
 def test():
+	print(accum_time_array)
+	
 
 	return
 
@@ -154,18 +161,21 @@ def main():
 	x = np.zeros_like(x_ref)
 	L = load_Hj_and_calc_lightpath()
 	L_T = L.T
-	a = L_T.dot(L)
-	b = L_T.dot(y)
+	a = np.dot(L_T,L)
+	#a = L_T.dot(L)
+	b = np.dot(L_T,y)
+	#b = L_T.dot(y)
 
 	print("y:"+str(y.shape))
 	print("x_ref:"+str(x_ref.shape))
 	print("L:"+str(L.shape))
-	print(a.dtype)
-	print(b.dtype)
-	x_ans = cg(a,b)[0]
+	print("L_T:"+str(L_T.shape))
+	print("a:"+str(a.shape))
+	x_ans,x_info = cg(a,b, x0 = x)
 	x_ans_array = np.asarray(x_ans)
-	print(x_ans_array.shape)
+	print(x_info)
 	x = x_ans_array+x_ref
+	#print(x)
 	x_reshape = np.reshape(x,[stepnum_x-2,stepnum_y-2])
 
 
@@ -174,12 +184,12 @@ def main():
 	bar1=ax1.imshow(x_reshape, cmap=cm.jet)
 	fig.colorbar(bar1)
 	#plt.show()
-	fig.savefig(outputfile+"/test.png")
+	fig.savefig(outputfile+"/test20x20_3.png")
 	plt.close(fig)
 
 
 
 
 if __name__ == '__main__':
-	main()
-	#test()
+	#main()
+	test()

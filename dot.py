@@ -7,9 +7,9 @@ import os
 import sys
 from tqdm import tqdm
 
-import dot_parameter_test2
+import dot_parameter_test20x20
 
-outputfile = "./image/dot_without_ab_20x20_3light2detec"
+outputfile = "./image/dot_without_ab_20x20_9light6detec_2"
 if not os.path.isdir(outputfile):
 	os.makedirs(outputfile)
 	os.makedirs(outputfile+"/png")
@@ -18,7 +18,7 @@ if not os.path.isdir(outputfile):
 #条件設定
 ##################################
 #ピコ秒での計測
-myClass = dot_parameter_test2.Dot()
+myClass = dot_parameter_test20x20.Dot()
 stepnum_x = myClass.stepnum_x
 stepnum_y = myClass.stepnum_y
 length_x = myClass.length_x
@@ -94,16 +94,16 @@ def diffuse(nt,nlight,phi):
 	phi[1,:] = phi_n[2,:]*(2*D*A)/(2*D*A + dx)
 	phi[-2,:] = phi_n[-3,:]*(2*D*A)/(2*D*A + dx)
 
-
-	fig = plt.figure()
-	fig, ax1= plt.subplots(1, 1, figsize=(8, 4.5),sharex=True, sharey=True)
-	ax1.set_title("nt="+str(nt))
-	bar1=ax1.imshow(phi, cmap=cm.jet,norm = colors.LogNorm(vmin = 0.00001,vmax =1))
-	fig.colorbar(bar1)
-	#plt.show()
-	fig.savefig(outputfile+"/png/{0:d}-{1:03d}.png".format(nlight,nt))
+	if nt % 10 == 0:
+		fig = plt.figure()
+		fig, ax1= plt.subplots(1, 1, figsize=(8, 4.5),sharex=True, sharey=True)
+		ax1.set_title("nt="+str(nt))
+		bar1=ax1.imshow(phi, cmap=cm.jet,norm = colors.LogNorm(vmin = 0.00001,vmax =1))
+		fig.colorbar(bar1)
+		#plt.show()
+		fig.savefig(outputfile+"/png/{0:d}-{1:03d}.png".format(nlight,nt))
+		plt.close(fig)
 	np.save(outputfile+"/{0:d}-{1:03d}".format(nlight,nt),phi)
-	plt.close(fig)
 
 	return phi
 
