@@ -7,9 +7,13 @@ import os
 import sys
 from tqdm import tqdm
 
-import dot_parameter_test20x20
+#import dot_parameter_test10x10_2
+#import dot_parameter_test20x20_2
+import dot_parameter_test10x20
 
-outputfile = "./image/dot_without_ab_20x20_9light6detec_2"
+#outputfile = "./image/dot_with_ab_10x10_test21"
+outputfile = "./image/dot_without_ab_10x20_test2"
+#outputfile = "./image/dot_with_ab_20x20_test7"
 if not os.path.isdir(outputfile):
 	os.makedirs(outputfile)
 	os.makedirs(outputfile+"/png")
@@ -18,7 +22,9 @@ if not os.path.isdir(outputfile):
 #条件設定
 ##################################
 #ピコ秒での計測
-myClass = dot_parameter_test20x20.Dot()
+#myClass = dot_parameter_test10x10_2.Dot()
+myClass = dot_parameter_test10x20.Dot()
+#myClass = dot_parameter_test20x20_2.Dot()
 stepnum_x = myClass.stepnum_x
 stepnum_y = myClass.stepnum_y
 length_x = myClass.length_x
@@ -70,7 +76,7 @@ end_x = center_x+10
 #inputlight[int(start_y):int(end_y),:] = myClass.pulse()
 num_light = myClass.num_light
 pos_light = myClass.pos_light
-print(pos_light.shape)
+print(pos_light)
 #for i in range(num_light):
 #	inputlight[int(pos_light[i,0]),:] = myClass.pulse()
 
@@ -79,6 +85,22 @@ def diffuse(nt,nlight,phi):
 	#光源を設定
 	phi[:,0] = inputlight[:,nt]
 	
+	if nt % 50 == 0:
+		tqdm.write(str(phi[pos_light[j,0],pos_light[j,1]]))
+		fig = plt.figure()
+		fig, ax1= plt.subplots(1, 1, figsize=(8, 4.5),sharex=True, sharey=True)
+		ax1.set_title("nt="+str(nt))
+		bar1=ax1.imshow(phi, cmap=cm.jet,norm = colors.LogNorm(vmin = 0.00001,vmax =0.1))
+		#bar1=ax1.imshow(phi, cmap=cm.jet)
+		fig.colorbar(bar1)
+		#plt.show()
+		fig.savefig(outputfile+"/png/{0:d}-{1:03d}.png".format(nlight,nt))
+		plt.clf()
+		plt.close(fig)
+	np.save(outputfile+"/{0:d}-{1:03d}".format(nlight,nt),phi)
+
+
+
 	phi_n = phi.copy()
 	phi[1:-1,1:-1] 	= c*dt*D*((phi_n[1:-1,2:] - 2 * phi_n[1:-1,1:-1] + phi_n[1:-1,0:-2]) / (dx**2)) \
 					+ c*dt*D*((phi_n[2:,1:-1] -2 * phi_n[1:-1,1:-1] + phi_n[0:-2,1:-1]) / (dy**2)) \
@@ -87,23 +109,21 @@ def diffuse(nt,nlight,phi):
 	##y方向の境界条件
 	#入力面での境界条件
 	phi[:,1] = (1/(2*D*A+dy))*(2*D*A*phi_n[:,2] + (inputlight[:,nt] * (4*dy) / (1-rd)))
+	#phi[:,0] = (1/(2*D*A+dy))*(2*D*A*phi_n[:,1] + (inputlight[:,nt] * (4*dy) / (1-rd)))
 
 	#出力面での境界条件
 	phi[:,-2] = phi_n[:,-3]*(2*D*A)/(2*D*A + dy)
+	#phi[:,-1] = phi_n[:,-2]*(2*D*A)/(2*D*A + dy)
 	##x方向の境界条件
 	phi[1,:] = phi_n[2,:]*(2*D*A)/(2*D*A + dx)
 	phi[-2,:] = phi_n[-3,:]*(2*D*A)/(2*D*A + dx)
+	#phi[0,:] = phi_n[1,:]*(2*D*A)/(2*D*A + dx)
+	#phi[-1,:] = phi_n[-2,:]*(2*D*A)/(2*D*A + dx)
+	
+	#phi[0,:] = 0
+	#phi[-1,:] = 0
 
-	if nt % 10 == 0:
-		fig = plt.figure()
-		fig, ax1= plt.subplots(1, 1, figsize=(8, 4.5),sharex=True, sharey=True)
-		ax1.set_title("nt="+str(nt))
-		bar1=ax1.imshow(phi, cmap=cm.jet,norm = colors.LogNorm(vmin = 0.00001,vmax =1))
-		fig.colorbar(bar1)
-		#plt.show()
-		fig.savefig(outputfile+"/png/{0:d}-{1:03d}.png".format(nlight,nt))
-		plt.close(fig)
-	np.save(outputfile+"/{0:d}-{1:03d}".format(nlight,nt),phi)
+	
 
 	return phi
 
