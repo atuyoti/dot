@@ -4,10 +4,10 @@ from matplotlib import pyplot as plt
 import os
 
 class Dot:
-	stepnum_x = 21
-	stepnum_y = 21
-	length_x = 0.8
-	length_y = 0.8
+	stepnum_x = 34
+	stepnum_y = 34
+	length_x = 1.32
+	length_y = 1.32
 	dx = length_x / (stepnum_x - 1)
 	dy = length_y / (stepnum_y - 1)
 	dt = 0.004 #ps 0.002
@@ -20,25 +20,40 @@ class Dot:
 	A = (1+rd) / (1-rd)
 	myu_a_without = np.ones((stepnum_x,stepnum_y))*0.0
 	myu_tmp = np.copy(myu_a_without)
-	myu_tmp[6:7,6:7] = 0.02
-	myu_tmp[16:17,16:17] = 0.015
-	myu_tmp[6:7,16:17] = 0.02
+	myu_tmp[9:12,9:12] = 0.02
+	myu_tmp[24:27,24:27] = 0.015
+	myu_tmp[9:12,24:27] = 0.02
 	#myu_tmp[5:7,5:7] = 50
 	myu_a_with = myu_tmp
 	x = np.linspace(0,length_x,stepnum_x)
 	y = np.linspace(0,length_y,stepnum_y)
-	stepnum_time = 2001
-	accum_time = 2000
+	stepnum_time = 4001
+	accum_time = 4000
 	accum_time_array = np.arange(stepnum_time,step=accum_time)
 	accum_time_array = np.delete(accum_time_array,0)
-	num_detector = 24
-	pos_detector = np.array([[1,3],[1,9],[1,15],[-2,3],[-2,9],[-2,15],[1,-2],[2,-2],[3,-2],[4,-2],[5,-2],[6,-2],[7,-2],[8,-2],[9,-2],[10,-2],[11,-2],[12,-2],[13,-2],[14,-2],[15,-2],[16,-2],[17,-2],[18,-2]])
-	center_x = (stepnum_x-1)/2
-	num_light = 16
-	#pos_light = np.array([[center_y,0],[5,0],[15,0]])
-	pos_light = np.array([[2,0],[3,0],[4,0],[5,0],[6,0],[7,0],[8,0],[9,0],[10,0],[11,0],[12,0],[13,0],[14,0],[15,0],[16,0],[17,0]])
-
-	def pulse(self,amp=10,t1=15,t2=5,dlen=stepnum_time,_dt=1):
+	
+	if stepnum_x%2==0:
+		center = stepnum_x / 2
+	else:
+		center = int((stepnum_x -1)/2)
+	first = center -3
+	end = center +3
+	test = np.array([first,center,end])
+	pos_detector = np.empty((stepnum_x - 3 + 6,2),dtype=int)
+	for i,x in enumerate(range(2,stepnum_x-1)):
+		pos_detector[i,:] = [x,-2]
+	for y in [1,-2]:
+		for x in test:
+			i= i+1
+			pos_detector[i,:] = [y,x]
+	#pos_detector = np.array([[1,5],[1,8],[-2,5],[-2,8],[2,-2],[3,-2],[4,-2],[5,-2],[6,-2],[7,-2],[8,-2],[9,-2]])
+	num_detector = pos_detector.shape[0]
+	
+	pos_light = np.empty((stepnum_x - 4,2),dtype=int)
+	for i,x in enumerate(range(2,stepnum_x-2)):
+		pos_light[i,:] = [x,0]
+	num_light = pos_light.shape[0]
+	def pulse(self,amp=1,t1=15,t2=5,dlen=stepnum_time,_dt=1):
 		t = np.linspace(0,_dt*(dlen-1),dlen)
 		y = amp * (np.exp(-((t-t1) ** 2)/(t2 ** 2)))
 		fig = plt.figure()
@@ -53,4 +68,5 @@ class Dot:
 
 myClass = Dot()
 
-print(myClass.accum_time_array)
+print(myClass.pos_detector)
+print(myClass.pos_light.shape)

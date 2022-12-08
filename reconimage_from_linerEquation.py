@@ -11,10 +11,12 @@ import math
 from scipy.sparse.linalg import cg
 from scipy.optimize import minimize
 
-#import dot_parameter_test10x10_2
-import dot_parameter_test10x20
+import dot_parameter_test10x10_3
+#import dot_parameter_test10x20
 #import dot_parameter_test20x20_2
-filename = "10x20_test2"
+#import dot_parameter_test32x32
+filename = "10x10_test43"
+#filename2 = "10x10_test38"
 #inputfile1 = "./image/dot_without_ab_10x10_test20/"
 #inputfile2 = "./image/dot_with_ab_10x10_test20/"
 #inputfile3 = "./image/pathlength_10x10_edited_myu_a_test/"
@@ -36,9 +38,10 @@ if not os.path.isdir(outputfile):
 #条件設定
 ##################################
 #ピコ秒での計測
-#myClass = dot_parameter_test10x10_2.Dot()
-myClass = dot_parameter_test10x20.Dot()
+myClass = dot_parameter_test10x10_3.Dot()
+#myClass = dot_parameter_test10x20.Dot()
 #myClass = dot_parameter_test20x20_2.Dot()
+#myClass = dot_parameter_test32x32.Dot()
 stepnum_x = myClass.stepnum_x
 stepnum_y = myClass.stepnum_y
 length_x = myClass.length_x
@@ -57,8 +60,8 @@ myu_a = myClass.myu_a_without
 myu_a_with = myClass.myu_a_with
 x = myClass.x
 y = myClass.y
-stepnum_time = myClass.stepnum_time -200
-accum_time = myClass.accum_time -200
+stepnum_time = myClass.stepnum_time 
+accum_time = myClass.accum_time 
 #accum_time_array = myClass.accum_time_array
 accum_time_array = np.arange(stepnum_time,step=accum_time)
 accum_time_array = np.delete(accum_time_array,0)
@@ -159,14 +162,14 @@ def load_Hj_and_calc_lightpath():
 			H_j_temp =  np.load(inputfile3+"H_map_{0:02d}-{1:02d}.npy".format(i,j))
 			#H_j_temp_diff = np.diff(H_j_temp,axis=0)
 			#H_j_temp[1:,:,:] = H_j_temp_diff
-			#print(H_j_temp.shape)
+			print(H_j_temp.shape)
 			for k,time in enumerate(accum_time_array):
 				I_map = np.load(inputfile1+"{0}-{1:03d}.npy".format(i,time))
 				I_r = I_map[pos_detector[j,0],pos_detector[j,1]] / (2*A)
 				
 				index = (i*num_detector*accum_time_array.shape[0]) + (j*accum_time_array.shape[0]) + k
 				
-				H_j_flat = convert2Dto1D(crop_array(H_j_temp[k,:,:]))
+				H_j_flat = convert2Dto1D(crop_array(H_j_temp[:,:]))
 				H_j[index,:] = H_j_flat
 				H_j_sum = np.sum(H_j,axis=1)
 				L_j[index,:] = (H_j[index,:] / H_j_sum[index]) * c * time *dt
@@ -211,6 +214,13 @@ def test2():
 	ans = cgm(a,b,x_)
 	x = ans+x_ref
 	x_reshape = np.reshape(x,[stepnum_x-2,stepnum_y-2])
+
+	print("y:"+str(y.shape))
+	print("x_ref:"+str(x_ref.shape))
+	print("L:"+str(L.shape))
+	print("L_T:"+str(L_T.shape))
+	print("a:"+str(a.shape))
+
 	fig = plt.figure()
 	fig, ax1= plt.subplots(1, 1, figsize=(8, 4.5),sharex=True, sharey=True)
 	bar1=ax1.imshow(x_reshape, cmap=cm.Greys,vmin=0,vmax=0.02)
