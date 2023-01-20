@@ -18,7 +18,7 @@ class Dot:
 	n_rel = 1.33
 	rd = -1.440/n_rel**2 + 0.710/n_rel + 0.668 + 0.0636*n_rel
 	A = (1+rd) / (1-rd)
-	myu_a_without = np.ones((stepnum_x,stepnum_y))*0.0
+	myu_a_without = np.ones((stepnum_x,stepnum_y))*0.01
 	myu_tmp = np.copy(myu_a_without)
 	myu_tmp[9:12,9:12] = 0.02
 	myu_tmp[24:27,24:27] = 0.015
@@ -51,8 +51,8 @@ class Dot:
 	#pos_detector = np.array([[1,5],[1,8],[-2,5],[-2,8],[2,-2],[3,-2],[4,-2],[5,-2],[6,-2],[7,-2],[8,-2],[9,-2]])
 	num_detector = pos_detector.shape[0]
 	
-	pos_light = np.empty((stepnum_x - 4,2),dtype=int)
-	for i,x in enumerate(range(2,stepnum_x-2)):
+	pos_light = np.empty((stepnum_x - 10,2),dtype=int)
+	for i,x in enumerate(range(5,stepnum_x-5)):
 		pos_light[i,:] = [x,0]
 	num_light = pos_light.shape[0]
 	def pulse(self,amp=10,t1=15,t2=5,dlen=stepnum_time,_dt=1):

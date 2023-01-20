@@ -22,9 +22,10 @@ w = 0.0005
 #import dot_parameter_test10x20
 #import dot_parameter_test20x20_2
 #import dot_parameter_test32x32
-import dot_parameter_test32x32_2
+#import dot_parameter_test32x32_2
+import dot_parameter_test32x32_4
 
-filename = "32x32_test4"
+filename = "32x32_test_9absorb"
 #filename2 = "10x10_test38"
 #inputfile1 = "./image/dot_without_ab_10x10_test20/"
 #inputfile2 = "./image/dot_with_ab_10x10_test20/"
@@ -50,7 +51,8 @@ if not os.path.isdir(outputfile):
 #myClass = dot_parameter_test10x10_3.Dot()
 #myClass = dot_parameter_test10x20.Dot()
 #myClass = dot_parameter_test20x20_2.Dot()
-myClass = dot_parameter_test32x32_2.Dot()
+#myClass = dot_parameter_test32x32_2.Dot()
+myClass = dot_parameter_test32x32_4.Dot()
 stepnum_x = myClass.stepnum_x
 stepnum_y = myClass.stepnum_y
 length_x = myClass.length_x
@@ -192,39 +194,18 @@ def load_Hj_and_calc_lightpath():
 
 
 
-def cgm(A, b, x_init):
+def cgm(A, b, x_init,num):
     x = x_init
     print(A.shape,x.shape)
     r0 = b - np.dot(A,x)
     p = r0
     k = 0
-    for i in range(1000000):
+    for i in range(num):
         a = float( np.dot(r0.T,r0) / np.dot(np.dot(p.T, A),p) )
         x = x + p*a
         r1 = r0 - np.dot(A*a, p)
         if i% 1000 ==0:
        		print(i,np.linalg.norm(r1))
-        if np.linalg.norm(r1) < 1.0e-10:
-            return x
-        b = float( np.dot(r1.T, r1) / np.dot(r0.T, r0) )
-        p = r1 + b * p
-        r0 = r1
-    return x
-
-def cgm_5000(A,b,x_init):
-    x = x_init
-    print(A.shape,x.shape)
-    r0 = b - np.dot(A,x)
-    p = r0
-    k = 0
-    for i in range(2000):
-        a = float( np.dot(r0.T,r0) / np.dot(np.dot(p.T, A),p) )
-        x = x + p*a
-        r1 = r0 - np.dot(A*a, p)
-        if i% 1000 ==0:
-       		print(i,np.linalg.norm(r1))
-        if np.linalg.norm(r1) < 1.0e-10:
-            return x
         b = float( np.dot(r1.T, r1) / np.dot(r0.T, r0) )
         p = r1 + b * p
         r0 = r1
@@ -254,116 +235,82 @@ def test2():
 	print("y_norm",y_norm)
 	print("noise",noise)
 	print("y_noise",y_noise)
-	#exit()
 
 	#a = np.dot(L_T,L)/1.8
-	a = np.dot(L_T,L)/3
+	#a = np.dot(L_T,L)/3
+	a = np.dot(L_T,L)/2.4
 	b = np.dot(L_T,y_noise)
 	b_test = np.dot(L_T,y)
 
 
-	#x_ans,x_info = cg(a,b, x0 = x_0,tol = 1e-9)
-	#x_ans_array = np.asarray(x_ans)
-	#x = x_ans_array+x_ref
-	#print(x_info)
-
-
-	ans = cgm(a,b,x_0)
-	x = ans+x_ref
-	x_reshape_noise = np.reshape(x,[stepnum_x-2,stepnum_y-2])
-	
-	#x_reshape_noise = random_noise(x_reshape,mode="gaussian",var=0.0000001)
-	#x_reshape_noise = random_noise(x_reshape,mode="gaussian",var=0.00000003)
-	#x_denoise = denoise_tv_chambolle(x_reshape_noise,weight=w)
-	x_denoise = ndimage.median_filter(x_reshape_noise,size=3)
-
-	ans1 = cgm_5000(a,b_test,x_0)
+	ans1 = cgm(a,b_test,x_0,500)
 	x_test = ans1+x_ref
-	x_reshape = np.reshape(x_test,[stepnum_x-2,stepnum_y-2])
+	x_reshape1 = np.reshape(x_test,[stepnum_x-2,stepnum_y-2])
 
-	print("y:"+str(y.shape))
-	print("x_ref:"+str(x_ref.shape))
-	print("L:"+str(L.shape))
-	print("L_T:"+str(L_T.shape))
-	print("a:"+str(a.shape))
-	print("b:"+str(b.shape))
+	ans2 = cgm(a,b_test,x_0,5000)
+	x_test2 = ans2+x_ref
+	x_reshape2 = np.reshape(x_test2,[stepnum_x-2,stepnum_y-2])
 
+	x_denoise = ndimage.median_filter(x_reshape2,size=3)
+
+	ans3 = cgm(a,b_test,x_0,20000)
+	x_test3 = ans3+x_ref
+	x_reshape3 = np.reshape(x_test3,[stepnum_x-2,stepnum_y-2])
+
+	ans4 = cgm(a,b_test,x_0,30000)
+	x_test4 = ans3+x_ref
+	x_reshape4 = np.reshape(x_test4,[stepnum_x-2,stepnum_y-2])
 
 	fig = plt.figure()
 	fig, ax1= plt.subplots(1, 1, figsize=(8, 4.5),sharex=True, sharey=True)
-	#bar1=ax1.imshow(x_reshape, cmap=cm.Greys,vmin=0,vmax=0.02)
-	bar1=ax1.imshow(x_reshape, cmap=cm.Greys,vmin=0)
+	bar1=ax1.imshow(x_denoise, cmap=cm.Greys,vmin=0,vmax=0.02)
+	#bar1=ax1.imshow(x_reshape1, cmap=cm.Greys,vmin=0)
 	#bar1=ax1.imshow(x_reshape, cmap=cm.Greys)
 	fig.colorbar(bar1)
 	#plt.show()
-	fig.savefig(outputfile+"/test"+filename+"_reconimage-3.png")
+	fig.savefig(outputfile+"/test"+filename+"_denoise.png")
 	plt.close(fig)
-	np.save(outputfile+"/test"+filename+"_recon-3",x_reshape)
-
-	fig = plt.figure()
-	fig, ax1= plt.subplots(1, 1, figsize=(8, 4.5),sharex=True, sharey=True)
-	#bar1=ax1.imshow(x_reshape, cmap=cm.Greys,vmin=0,vmax=0.02)
-	#bar1=ax1.imshow(x_reshape, cmap=cm.Greys,vmin=0)
-	bar1=ax1.imshow(x_reshape_noise, cmap=cm.Greys,vmin=0)
-	fig.colorbar(bar1)
-	#plt.show()
-	fig.savefig(outputfile+"/test"+filename+"_addnoise-3.png")
-	plt.close(fig)
-	np.save(outputfile+"/test"+filename+"_addnoise-3",x_reshape_noise)
+	np.save(outputfile+"/test"+filename+"_denoise",x_denoise)
 
 
 	fig = plt.figure()
 	fig, ax1= plt.subplots(1, 1, figsize=(8, 4.5),sharex=True, sharey=True)
-	#bar1=ax1.imshow(x_reshape, cmap=cm.Greys,vmin=0,vmax=0.02)
-	bar1=ax1.imshow(x_denoise, cmap=cm.Greys,vmin=0)
+	bar1=ax1.imshow(x_reshape1, cmap=cm.Greys_r,vmin=0,vmax=0.02)
+	#bar1=ax1.imshow(x_reshape1, cmap=cm.Greys,vmin=0)
+	#bar1=ax1.imshow(x_reshape, cmap=cm.Greys)
 	fig.colorbar(bar1)
 	#plt.show()
-	fig.savefig(outputfile+"/test"+filename+"_denoise-3.png")
+	fig.savefig(outputfile+"/test"+filename+"_reconimage-500_r.png")
 	plt.close(fig)
-	np.save(outputfile+"/test"+filename+"_denoise-3",x_denoise)
-
 
 	fig = plt.figure()
 	fig, ax1= plt.subplots(1, 1, figsize=(8, 4.5),sharex=True, sharey=True)
-	bar1=ax1.imshow(myu_a_with_crop, cmap=cm.Greys,vmin=0)
+	bar1=ax1.imshow(x_reshape2, cmap=cm.Greys_r,vmin=0,vmax=0.02)
+	#bar1=ax1.imshow(x_reshape2, cmap=cm.Greys,vmin=0)
+	#bar1=ax1.imshow(x_reshape, cmap=cm.Greys)
 	fig.colorbar(bar1)
 	#plt.show()
-	fig.savefig(outputfile+"/myu_a_"+filename+".png")
+	fig.savefig(outputfile+"/test"+filename+"_reconimage-5000_r.png")
 	plt.close(fig)
-
-def test():
-	y = load_Hj_and_calc_lightpath()
-
-def main():
-	y = load_and_calc_ratio(accum_time_array)
-	myu_a_crop = crop_array(myu_a)
-	x_ref = convert2Dto1D(myu_a_crop)
-	x = np.zeros_like(x_ref)
-	L = load_Hj_and_calc_lightpath()
-	L_T = L.T
-	a = np.dot(L_T,L)*2
-	#a = L_T.dot(L)
-	b = np.dot(L_T,y)
-	#b = L_T.dot(y)
-
-	print("y:"+str(y.shape))
-	print("x_ref:"+str(x_ref.shape))
-	print("L:"+str(L.shape))
-	print("L_T:"+str(L_T.shape))
-	print("a:"+str(a.shape))
-	x_ans,x_info = cg(a,b, x0 = x)
-	x_ans_array = np.asarray(x_ans)
-	x = x_ans_array+x_ref
-	print(x_info)
-	x_reshape = np.reshape(x,[stepnum_x-2,stepnum_y-2])
-
+	np.save(outputfile+"/test"+filename+"_recon-5000",x_reshape2)
 
 	fig = plt.figure()
 	fig, ax1= plt.subplots(1, 1, figsize=(8, 4.5),sharex=True, sharey=True)
-	bar1=ax1.imshow(x_reshape, cmap=cm.Greys)
+	bar1=ax1.imshow(x_reshape3, cmap=cm.Greys_r,vmin=0,vmax=0.02)
+	#bar1=ax1.imshow(x_reshape3, cmap=cm.Greys,vmin=0)
+	#bar1=ax1.imshow(x_reshape, cmap=cm.Greys)
 	fig.colorbar(bar1)
 	#plt.show()
-	fig.savefig(outputfile+"/test10x10_test15.png")
+	fig.savefig(outputfile+"/test"+filename+"_reconimage-20000_r.png")
+	plt.close(fig)
+
+	fig = plt.figure()
+	fig, ax1= plt.subplots(1, 1, figsize=(8, 4.5),sharex=True, sharey=True)
+	bar1=ax1.imshow(x_reshape4, cmap=cm.Greys_r,vmin=0,vmax=0.02)
+	#bar1=ax1.imshow(x_reshape3, cmap=cm.Greys,vmin=0)
+	fig.colorbar(bar1)
+	#plt.show()
+	fig.savefig(outputfile+"/test"+filename+"_reconimage-30000_r.png")
 	plt.close(fig)
 
 

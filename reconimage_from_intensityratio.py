@@ -5,12 +5,13 @@ from matplotlib import colors
 import os
 import itertools
 
-import dot_parameter_test2
+import dot_parameter_test10x20
 
-inputdir = "./image/graph/intensity_ratio/20x20_3light2detec"
+inputdir = "./image/graph/intensity_ratio/10x20_test1"
 filename = "/ratio.npy"
-outputdir = "./image/graph/intensity_ratio/20x20_3light2detec"
-myClass = dot_parameter_test2.Dot()
+outputdir = "./image/graph/intensity_ratio/10x20_test1"
+
+myClass = dot_parameter_test10x20.Dot()
 stepnum_time = myClass.stepnum_time
 stepnum_x = myClass.stepnum_x
 stepnum_y = myClass.stepnum_y
@@ -18,7 +19,7 @@ dt = myClass.dt #ps
 A = myClass.A
 num_light = myClass.num_light
 pos_light = myClass.pos_light
-y = stepnum_y-2
+y = stepnum_y
 
 def reconimage(ratio_array):
 
@@ -41,7 +42,7 @@ def reconimage(ratio_array):
 	fig = plt.figure()
 	fig, ax1= plt.subplots(1, 1, figsize=(8, 4.5),sharex=True, sharey=True)
 	ax1.set_title("reconimage")
-	bar1 = ax1.imshow(sumimage, cmap=cm.jet,vmin = 0,vmax=10)
+	bar1 = ax1.imshow(sumimage, cmap=cm.jet,vmin = 0)
 	fig.colorbar(bar1)
 	fig.savefig(outputdir+"/reconimage-2.png")
 	plt.close(fig)
@@ -56,6 +57,7 @@ def reconimage(ratio_array):
 
 ratio_array = np.load(inputdir+filename)
 print(ratio_array.shape)
+print("aaaa")
 ratio_array[0,:]=0
 ratio_array[stepnum_x-1,:]=0
 reconimage(ratio_array)

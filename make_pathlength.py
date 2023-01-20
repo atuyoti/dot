@@ -8,9 +8,9 @@ import sys
 from tqdm import tqdm
 import itertools
 
-import dot_parameter_test20x20
+import dot_parameter_test10x10_myu_a_edited
 
-outputfile = "./image/pathlength_20x20_3"
+outputfile = "./image/pathlength_10x10_test10"
 if not os.path.isdir(outputfile):
 	os.makedirs(outputfile)
 	os.makedirs(outputfile+"/png")
@@ -19,7 +19,7 @@ if not os.path.isdir(outputfile):
 #条件設定
 ##################################
 #ピコ秒での計測
-myClass = dot_parameter_test20x20.Dot()
+myClass = dot_parameter_test10x10_myu_a_edited.Dot()
 stepnum_x = myClass.stepnum_x
 stepnum_y = myClass.stepnum_y
 length_x = myClass.length_x
@@ -41,7 +41,7 @@ stepnum_time = myClass.stepnum_time
 accum_time = myClass.accum_time
 accum_time_array = myClass.accum_time_array
 H_j = np.zeros((accum_time_array.shape[0],stepnum_x,stepnum_y))
-intensity = int(100)
+intensity = int(1)
 
 num_detector = myClass.num_detector
 pos_detector = myClass.pos_detector
@@ -130,6 +130,18 @@ def calc_H_j(x,y,nlight,phi,ac_time,ndetec):
 			if t==t_d:
 				h_xi_j,phi,phi_j = calc_xi_to_j_probDens(phi,x,y)
 
+			if t % 10 == 0:
+				fig = plt.figure()
+				fig, ax1= plt.subplots(1, 1, figsize=(8, 4.5),sharex=True, sharey=True)
+				ax1.set_title("nt="+str(t))
+				bar1=ax1.imshow(phi, cmap=cm.jet,norm = colors.LogNorm(vmin = 0.00001,vmax =0.1))
+				#bar1=ax1.imshow(phi, cmap=cm.jet)
+				fig.colorbar(bar1)
+				#plt.show()
+				fig.savefig(outputfile+"/png/{0:d}-{1:03d}-{2:02d}-{3:02d}.png".format(nlight,t,x,y))
+				plt.clf()
+				plt.close(fig)
+
 			#時刻tの時のピクセルxの存在確立を求める
 			if ac_time_tmp.size!=0 and t==ac_time_tmp[0] and t>=t_d:
 				h_j_x = calc_j_to_x_probDens(phi,phi_j,ndetec)
@@ -152,6 +164,7 @@ def calc_H_j(x,y,nlight,phi,ac_time,ndetec):
 				H_j_array[index] = H_j_array[index] + H_j
 				index = index+1
 				ac_time_tmp = np.delete(ac_time_tmp,0)
+	#tqdm.write(str(H_j_array.shape))
 	return H_j_array
 
 
@@ -162,6 +175,7 @@ def test():
 
 
 def main():
+
 	for index_detec in tqdm(range(num_detector)):
 		for index_light in tqdm(range(num_light),leave=False):
 			all_num = itertools.product(range(1,stepnum_x-1),range(1,stepnum_y-1))
@@ -170,9 +184,8 @@ def main():
 				phi = np.zeros((stepnum_x,stepnum_y),dtype = np.float64)
 				H_j[:,i,j] = calc_H_j(i,j,index_light,phi,accum_time_array,index_detec)
 
-			
-
-		np.save(outputfile+"/H_map_{0:02d}-{1:02d}".format(index_light,index_detec),H_j)
+			np.save(outputfile+"/H_map_{0:02d}-{1:02d}".format(index_light,index_detec),H_j)
+			#print("H_map_{0:02d}-{1:02d}".format(index_light,index_detec))
 
 
 if __name__ == '__main__':

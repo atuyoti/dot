@@ -9,9 +9,11 @@ from tqdm import tqdm
 import itertools
 import math
 
-import dot_parameter_test20x20
+import  dot_parameter_test10x10_myu_a_edited
 
-outputfile = "./image/pathlength_test3"
+filename = "pathlength_10x10_test5"
+outputfile = "./image/"+filename
+
 if not os.path.isdir(outputfile):
 	os.makedirs(outputfile)
 	os.makedirs(outputfile+"/png")
@@ -20,7 +22,7 @@ if not os.path.isdir(outputfile):
 #条件設定
 ##################################
 #ピコ秒での計測
-myClass = dot_parameter_test20x20.Dot()
+myClass = dot_parameter_test10x10_myu_a_edited.Dot()
 stepnum_x = myClass.stepnum_x
 stepnum_y = myClass.stepnum_y
 length_x = myClass.length_x
@@ -42,7 +44,7 @@ stepnum_time = myClass.stepnum_time
 accum_time = myClass.accum_time
 accum_time_array = myClass.accum_time_array
 H_j = np.zeros((accum_time_array.shape[0],stepnum_x,stepnum_y))
-intensity = int(100)
+intensity = int(1)
 
 num_detector = myClass.num_detector
 pos_detector = myClass.pos_detector
@@ -67,10 +69,12 @@ def calc_distance(x1,y1,x2,y2):
 	return distance
 
 #存在確立の計算
-def calc_exisProb(distance):
+def calc_exisProb(distance,B):
 	#Microscopic beer-lambert法則
-	prob = math.exp(- myu_a[10,10]*distance)
-	return prob
+	myu_t = myu_a[5,5]
+	intensity =  B*math.exp(- myu_t *distance)
+	prob = intensity / B
+	return prob, intensity
 
 def calc_H_j(x,y,nlight,ac_time,ndetec):
 	#in:(x,y)座標，初期化された強度分布phi，計測時間
@@ -91,12 +95,12 @@ def calc_H_j(x,y,nlight,ac_time,ndetec):
 
 			#光が進んだ距離が二点間の距離より長いとき
 			if optical_length_xi_j>distance_xi_j:
-				h_xi_j = calc_exisProb(optical_length_xi_j)
+				h_xi_j,phi_j = calc_exisProb(optical_length_xi_j,intensity)
 			else:
 				h_xi_j = 0
 
 			if optical_length_j_x>distance_j_x and h_xi_j>0:
-				h_j_x = calc_exisProb(optical_length_j_x)
+				h_j_x, phi_x = calc_exisProb(optical_length_j_x,phi_j)
 			else:
 				h_j_x = 0
 

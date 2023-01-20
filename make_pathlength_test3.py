@@ -8,14 +8,15 @@ import sys
 from tqdm import tqdm
 import itertools
 
+
 #import dot_parameter_test10x10_myu_a_edited
-#import dot_parameter_test10x10_2
-import dot_parameter_test10x20
+import dot_parameter_test10x10_2
+#import dot_parameter_test10x20
 #import dot_parameter_test20x20_2
 
 #filename = "pathlength_20x20_test7"
-filename = "pathlength_10x20_test3"
-#filename = "pathlength_10x10_test21"
+#filename = "pathlength_10x20_test4"
+filename = "pathlength_10x10_test22"
 outputfile = "./image/"+filename
 if not os.path.isdir(outputfile):
 	os.makedirs(outputfile)
@@ -27,10 +28,10 @@ if not os.path.isdir(outputfile):
 #条件設定
 ##################################
 #ピコ秒での計測
-#myClass = dot_parameter_test10x10_myu_a_edited.Dot()
+
 #myClass = dot_parameter_test20x20_2.Dot()
-myClass = dot_parameter_test10x20.Dot()
-#myClass = dot_parameter_test10x10_2.Dot()
+#myClass = dot_parameter_test10x20.Dot()
+myClass = dot_parameter_test10x10_2.Dot()
 stepnum_x = myClass.stepnum_x
 stepnum_y = myClass.stepnum_y
 length_x = myClass.length_x
@@ -139,7 +140,7 @@ def diffuse_input_inside(phi,nt):
 
 
 
-def calc_H_j_2(x,y,nlight,ac_time,ndetec):
+def calc_H_j_2(x,y,nlight,ac_time,ndetec,phi_xi_j):
 	#in:(x,y)座標，初期化された強度分布phi，計測時間
 	#out:あるピクセルの存在確立H_j(float)
 	H_j_array = np.zeros((ac_time.shape[0]))
@@ -149,8 +150,8 @@ def calc_H_j_2(x,y,nlight,ac_time,ndetec):
 		H_j = 0
 		index = 0
 		ac_time_tmp = np.copy(ac_time)
-		phi_xi_j = np.load(outputfile+"/xi_j"+"/intensity_{0:02d}-{1:03d}.npy".format(nlight,t_d))
-		h_xi_j = phi_xi_j[x,y]
+		#phi_xi_j = np.load(outputfile+"/xi_j"+"/intensity_{0:02d}-{1:03d}.npy".format(nlight,t_d))
+		h_xi_j = phi_xi_j[t_d,x,y]
 		for index,time in enumerate(ac_time_tmp):
 			if t_d <= time:
 				t = time - t_d
@@ -203,7 +204,7 @@ def main():
 		phi = np.zeros((stepnum_x,stepnum_y),dtype = np.float64)
 		phi[i,j] = intensity
 		for time in range(stepnum_time):
-			
+			"""
 			if time % 50 == 0:
 				fig = plt.figure()
 				fig, ax1= plt.subplots(1, 1, figsize=(8, 4.5),sharex=True, sharey=True)
@@ -214,17 +215,26 @@ def main():
 				fig.savefig(outputfile+"/png/j_x-{0:02d}-{1:02d}-{2:03d}.png".format(i,j,time))
 				plt.clf()
 				plt.close(fig)
-			
+			"""
 			np.save(outputfile+"/j_x"+"/intensity_{0:02d}-{1:02d}-{2:02d}".format(i,j,time),phi)
 			phi = diffuse_input_inside(phi,time)
-			#np.save(outputfile+"/j_x"+"/intensity_nlight-{0:02d}-{1:02d}-{2:02d}-{3:03d}".format(index_light,i,j,time),phi)
+		
 			
 
 
-			
+	for index_light in tqdm(range(num_light)):
+		phi_xi_j_array = np.empty((stepnum_time,stepnum_x,stepnum_y))
+		for time in range(stepnum_time):
+			phi_xi_j_array[time,:,:] = np.load(outputfile+"/xi_j"+"/intensity_{0:02d}-{1:03d}.npy".format(index_light,time))
+		for index_detec in tqdm(range(num_detector),leave=False):
+			all_num = itertools.product(range(1,stepnum_x-1),range(1,stepnum_y-1))
+			for i, j in tqdm(all_num,desc="x,y",leave=False):
+				H_j[:,i,j] = calc_H_j_2(i,j,index_light,accum_time_array,index_detec,phi_xi_j_array)
+
+			np.save(outputfile+"/H_map_{0:02d}-{1:02d}".format(index_light,index_detec),H_j)
 
 	
-	
+	"""
 	for index_detec in tqdm(range(num_detector)):
 		for index_light in tqdm(range(num_light),leave=False):
 			all_num = itertools.product(range(1,stepnum_x-1),range(1,stepnum_y-1))
@@ -232,8 +242,20 @@ def main():
 				H_j[:,i,j] = calc_H_j_2(i,j,index_light,accum_time_array,index_detec)
 
 			np.save(outputfile+"/H_map_{0:02d}-{1:02d}".format(index_light,index_detec),H_j)
-	
+	"""
 
+def test():
+	for index_detec in tqdm(range(num_detector)):
+		for index_light in tqdm(range(num_light),leave=False):
+			phi_xi_j_array = np.empty((stepnum_time,stepnum_x,stepnum_y))
+			#print(phi_xi_j_array.shape)
+			for time in range(stepnum_time):
+				phi_xi_j_array[time,:,:] = np.load(outputfile+"/xi_j"+"/intensity_{0:02d}-{1:03d}.npy".format(index_light,time))
+			all_num = itertools.product(range(1,stepnum_x-1),range(1,stepnum_y-1))
+			for i, j in tqdm(all_num,desc="x,y",leave=False):
+				H_j[:,i,j] = calc_H_j_2(i,j,index_light,accum_time_array,index_detec,phi_xi_j_array)
+
+			np.save(outputfile+"/H_map_{0:02d}-{1:02d}".format(index_light,index_detec),H_j)
 
 if __name__ == '__main__':
 	main()

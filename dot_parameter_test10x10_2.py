@@ -27,8 +27,8 @@ class Dot:
 	myu_a_with = myu_tmp
 	x = np.linspace(0,length_x,stepnum_x)
 	y = np.linspace(0,length_y,stepnum_y)
-	stepnum_time = 2501
-	accum_time = 2500
+	stepnum_time = 2001
+	accum_time = 2000
 	accum_time_array = np.arange(stepnum_time,step=accum_time)
 	accum_time_array = np.delete(accum_time_array,0)
 	num_detector = 12

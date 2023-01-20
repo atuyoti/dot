@@ -7,15 +7,15 @@ import os
 import sys
 from tqdm import tqdm
 
-import dot_parameter_test10x10_3
+#import dot_parameter_test10x10_3
 #import dot_parameter_test20x20_2
 #import dot_parameter_test10x20
-#import dot_parameter_test32x32
+import dot_parameter_test32x32_4
 
-outputfile = "./image/dot_with_ab_10x10_test43"
+#outputfile = "./image/dot_with_ab_10x10_test43"
 #outputfile = "./image/dot_with_ab_10x20_test5"
-#outputfile = "./image/dot_without_ab_20x20_test11"
-#outputfile = "./image/dot_without_ab_32x32_test1"
+#outputfile = "./image/dot_with_ab_20x20_test15"
+outputfile = "./image/dot_without_ab_32x32_test_9absorb2"
 if not os.path.isdir(outputfile):
 	os.makedirs(outputfile)
 	os.makedirs(outputfile+"/png")
@@ -24,10 +24,10 @@ if not os.path.isdir(outputfile):
 #条件設定
 ##################################
 #ピコ秒での計測
-myClass = dot_parameter_test10x10_3.Dot()
+#myClass = dot_parameter_test10x10_3.Dot()
 #myClass = dot_parameter_test10x20.Dot()
 #myClass = dot_parameter_test20x20_2.Dot()
-#myClass = dot_parameter_test32x32.Dot()
+myClass = dot_parameter_test32x32_4.Dot()
 stepnum_x = myClass.stepnum_x
 stepnum_y = myClass.stepnum_y
 length_x = myClass.length_x
@@ -42,8 +42,8 @@ D = myClass.D #光拡散係数
 n_rel = myClass.n_rel
 rd = myClass.rd
 A = myClass.A
-myu_a = myClass.myu_a_with
-#myu_a = myClass.myu_a_without
+#myu_a = myClass.myu_a_with
+myu_a = myClass.myu_a_without
 x = myClass.x
 y = myClass.y
 stepnum_time = myClass.stepnum_time
@@ -90,7 +90,7 @@ def diffuse(nt,nlight,phi,inputlight):
 	phi[pos_light[nlight,0],pos_light[nlight,1]] = inputlight[nt]
 	
 	if nt % 50 == 0:
-		tqdm.write(str(phi[pos_light[nlight,0],pos_light[nlight,1]]))
+		#tqdm.write(str(phi[pos_light[nlight,0],pos_light[nlight,1]]))
 		fig = plt.figure()
 		fig, ax1= plt.subplots(1, 1, figsize=(8, 4.5),sharex=True, sharey=True)
 		ax1.set_title("nt="+str(nt))
@@ -98,11 +98,11 @@ def diffuse(nt,nlight,phi,inputlight):
 		#bar1=ax1.imshow(phi, cmap=cm.jet)
 		fig.colorbar(bar1)
 		#plt.show()
-		fig.savefig(outputfile+"/png/{0:d}-{1:03d}.png".format(nlight,nt))
+		fig.savefig(outputfile+"/png/{0:d}-{1:04d}.png".format(nlight,nt))
 		plt.clf()
 		plt.close(fig)
 	
-	np.save(outputfile+"/{0:d}-{1:03d}".format(nlight,nt),phi)
+	np.save(outputfile+"/{0:d}-{1:04d}".format(nlight,nt),phi)
 	
 
 

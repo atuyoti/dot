@@ -20,14 +20,14 @@ class Dot:
 	A = (1+rd) / (1-rd)
 	myu_a_without = np.ones((stepnum_x,stepnum_y))*0.1 #吸収率，あとでnumpy arrayから持ってくるように変更
 	myu_tmp = np.copy(myu_a_without)
-	myu_tmp[50:55,20:25] = 100
-	myu_tmp[80:90,10:20] = 100
-	myu_tmp[25:30,35:40] = 80
+	myu_tmp[50:55,20:25] = 0.02
+	myu_tmp[80:90,10:20] = 0.015
+	myu_tmp[25:30,35:40] = 0.02
 	#myu_tmp[5:7,5:7] = 50
 	myu_a_with = myu_tmp
 	x = np.linspace(0,length_x,stepnum_x)
 	y = np.linspace(0,length_y,stepnum_y)
-	stepnum_time = 1001
+	stepnum_time = 1501
 	accum_time = 10
 	accum_time_array = np.arange(stepnum_time,step=accum_time)
 	accum_time_array = np.delete(accum_time_array,0)

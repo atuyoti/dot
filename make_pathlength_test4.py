@@ -8,21 +8,17 @@ import sys
 from tqdm import tqdm
 import itertools
 import gc
-from numba import jit,prange
-import numba
-from multiprocessing import Process,Pool,freeze_support, RLock
-import time
 
 
-import dot_parameter_test32x32_4
+import dot_parameter_test32x32
 #import dot_parameter_test10x10_3
 #import dot_parameter_test10x20
 #import dot_parameter_test20x20_2
 
-filename = "pathlength_32x32_test_9absorb"
-#filename = "pathlength_20x20_test15"
+#filename = "pathlength_20x20_test12"
 #filename = "pathlength_10x20_test6"
-#filename = "pathlength_10x10_test43"
+#filename = "pathlength_10x10_test36"
+filename = "pathlength_32x32_test1"
 outputfile = "./image/"+filename
 if not os.path.isdir(outputfile):
 	os.makedirs(outputfile)
@@ -35,10 +31,10 @@ if not os.path.isdir(outputfile):
 ##################################
 #ピコ秒での計測
 
-myClass = dot_parameter_test32x32_4.Dot()
 #myClass = dot_parameter_test20x20_2.Dot()
 #myClass = dot_parameter_test10x20.Dot()
 #myClass = dot_parameter_test10x10_3.Dot()
+myClass = dot_parameter_test32x32.Dot()
 stepnum_x = myClass.stepnum_x
 stepnum_y = myClass.stepnum_y
 length_x = myClass.length_x
@@ -72,7 +68,7 @@ intensity = int(1)
 phi = np.zeros((stepnum_x,stepnum_y),dtype = np.float64)
 phi_n = np.zeros((stepnum_x,stepnum_y),dtype = np.float64)
 #u[int(.5 / dy):int(1 / dy+1),int(.5 / dx):int(1 / dx + 1)] = 2
-#print(phi.shape)
+print(phi.shape)
 
 #入力光源，あとで時間変化する形にする
 inputlight = np.zeros((stepnum_x,stepnum_time))
@@ -92,7 +88,10 @@ def create_paramfile():
 		f.write("dt:{0}\n".format(dt))
 		f.write("stepnum_time:{0}\n".format(stepnum_time))
 
-
+#時刻t'にjに入射した光が時刻tにxにいる確率
+def calc_j_to_x_probDens(phi,ndetec,h_xi_j):
+	h_j_x = np.copy(phi[ndetec[0],ndetec[1]])
+	return h_j_x
 
 #散乱の差分法
 def diffuse_input_from_surface(phi,nt,inputlight,nlight):
@@ -152,82 +151,67 @@ def diffuse_input_inside(phi,nt):
 
 	return phi
 
-#時刻t'にjに入射した光が時刻tにxにいる確率
-@jit("f8(f8[:,:],i4[:],f8)")
-def calc_j_to_x_probDens(phi,ndetec,h_xi_j):
-	h_j_x = phi[ndetec[0],ndetec[1]]
-	return h_j_x
 
-@jit("f8[:](i4,i4,i4,i4[:],f8[:,:,:],f8[:,:,:])",nopython=True)
-def calc_H_j_2(x,y,nlight,ac_time,phi_xi_j,phi_j_x_array):
+
+
+def calc_H_j_2(x,y,nlight,ac_time,phi_xi_j):
 	#in:(x,y)座標，初期化された強度分布phi，計測時間
 	#out:あるピクセルの存在確立H_j(float)
-	H_j_array = np.zeros((num_detector),np.float64)
-	#for t_d in tqdm(range(stepnum_time),leave=False,desc="t_d"):
-	for t_d in range(stepnum_time):
+	H_j_array = np.zeros((num_detector))
+	for t_d in tqdm(range(stepnum_time),leave=False,desc="t_d"):
 		h_xi_j = 0
-		h_j_x = 0.0
-		h_j = 0.0
-		H_j = np.zeros((num_detector),np.float64)
-		phi_j_x = np.zeros((stepnum_x,stepnum_y),np.float64)
-		ac_time_tmp = ac_time
+		h_j_x = np.zeros((num_detector))
+		H_j = np.zeros((num_detector))
+		index = 0
+		ac_time_tmp = np.copy(ac_time)
 		#phi_xi_j = np.load(outputfile+"/xi_j"+"/intensity_{0:02d}-{1:03d}.npy".format(nlight,t_d))
-		#時刻0にxiに入射した光が時刻t'にjにいる確率
 		h_xi_j = phi_xi_j[t_d,x,y]
 		
 		if h_xi_j==0:
 			pass
 		else:
 			t = (stepnum_time-1) - t_d
-			#phi_j_x = np.load(outputfile+"/j_x"+"/intensity_{0:02d}-{1:02d}-{2:02d}.npy".format(x,y,t))
-			phi_j_x = phi_j_x_array[t,:,:]
-			index_detec = 0
-			for detec in pos_detector:
-				#h_j_x = calc_j_to_x_probDens(phi_j_x,detec,h_xi_j)
-				#時刻t'にjに入射した光が時刻tにxにいる確率
-				h_j_x = phi_j_x[detec[0],detec[1]]
+			phi_j_x = np.load(outputfile+"/j_x"+"/intensity_{0:02d}-{1:02d}-{2:02d}.npy".format(x,y,t))
+			
+			for index_detec,detec in enumerate(pos_detector):
+				h_j_x = calc_j_to_x_probDens(phi_j_x,detec,h_xi_j)
 				h_j = h_xi_j * h_j_x
 				H_j[index_detec] = H_j[index_detec] + h_j*dt
 				H_j_array[index_detec] = H_j_array[index_detec] + H_j[index_detec]
-				index_detec = index_detec+1
 		
+		"""
+		t = (stepnum_time-1) - t_d
+		phi_j_x = np.load(outputfile+"/j_x"+"/intensity_{0:02d}-{1:02d}-{2:02d}.npy".format(x,y,t))
+		for index_detec,detec in enumerate(pos_detector):
+			h_j_x = calc_j_to_x_probDens(phi_j_x,detec,h_xi_j)
 
+			#時刻t'にピクセルjに光子が存在しない場合
+			if h_xi_j==0:
+				#h_j = 0
+				#H_j[index_detec] = H_j[index_detec] + h_j*dt
+				break
+
+			#時刻t'にピクセルjに光子が存在する場合
+			elif h_xi_j>0:
+				h_j = h_xi_j * h_j_x
+				H_j[index_detec] = H_j[index_detec] + h_j*dt
+
+			H_j_array[index_detec] = H_j_array[index_detec] + H_j[index_detec]
+		"""
 	return H_j_array
 
-def calc_parallel(index_light):
-	phi_xi_j_array = np.empty((stepnum_time,stepnum_x,stepnum_y),dtype=np.float64)
-	for time in range(stepnum_time):
-		phi_xi_j_array[time,:,:] = np.load(outputfile+"/xi_j"+"/intensity_{0:02d}-{1:03d}.npy".format(index_light,time))
-
-	info = f'#{index_light:>2}'
-	total = len(list(range(1,stepnum_x-1)))*len(list(range(1,stepnum_y-1)))
-	all_num = itertools.product(range(1,stepnum_x-1),range(1,stepnum_y-1))
-	for i, j in tqdm(all_num,desc=info,position=index_light+1,total=total):
-	#for i, j in all_num:
-		phi_j_x_array = np.empty((stepnum_time,stepnum_x,stepnum_y),dtype=np.float64)
-		for time in range(stepnum_time):
-			phi_j_x_array[time,:,:] =  np.load(outputfile+"/j_x"+"/intensity_{0:02d}-{1:02d}-{2:02d}.npy".format(i,j,time))
-		#[index_detec,x,y]
-
-		H_j[:,i,j] = calc_H_j_2(i,j,index_light,accum_time_array,phi_xi_j_array,phi_j_x_array)
-	
-	#for index_detec in tqdm(range(num_detector),leave=False):
-	for index_detec in range(num_detector):
-		np.save(outputfile+"/H_map_{0:02d}-{1:02d}".format(index_light,index_detec),H_j[index_detec,:,:])
-	#print("{}-end".format(index_light))
-		#np.save(outputfile+"/H_map_{0:02d}-{1:02d}".format(index_light,index_detec),H_j)
 
 
 def main():
 	create_paramfile()
-	print(num_detector)
+
 	for index_light in tqdm(range(num_light),leave=False):
 		inputlight = np.zeros((stepnum_time))
 		inputlight[0] = 1
 		phi = np.zeros((stepnum_x,stepnum_y),dtype = np.float64)
 		for time in range(stepnum_time):
 			phi[pos_light[index_light,0],pos_light[index_light,1]]  = inputlight[time]
-			"""
+			
 			if time % 50 == 0:
 				fig = plt.figure()
 				fig, ax1= plt.subplots(1, 1, figsize=(8, 4.5),sharex=True, sharey=True)
@@ -239,7 +223,7 @@ def main():
 				fig.savefig(outputfile+"/png/{0:02d}-{1:03d}.png".format(index_light,time))
 				plt.clf()
 				plt.close(fig)
-			"""
+			
 			np.save(outputfile+"/xi_j"+"/intensity_{0:02d}-{1:03d}".format(index_light,time),phi)
 			phi = diffuse_input_from_surface(phi,time,inputlight,index_light)
 
@@ -264,59 +248,32 @@ def main():
 			phi = diffuse_input_inside(phi,time)
 		
 		del phi
-		
+		gc.collect()
 	
-	"""
+
+
 	for index_light in tqdm(range(num_light)):
-		phi_xi_j_array = np.empty((stepnum_time,stepnum_x,stepnum_y),dtype=np.float64)
+		phi_xi_j_array = np.empty((stepnum_time,stepnum_x,stepnum_y))
 		for time in range(stepnum_time):
 			phi_xi_j_array[time,:,:] = np.load(outputfile+"/xi_j"+"/intensity_{0:02d}-{1:03d}.npy".format(index_light,time))
 
-		
-		
 		all_num = itertools.product(range(1,stepnum_x-1),range(1,stepnum_y-1))
 		for i, j in tqdm(all_num,desc="x,y",leave=False):
-			phi_j_x_array = np.empty((stepnum_time,stepnum_x,stepnum_y),dtype=np.float64)
-			for time in range(stepnum_time):
-				phi_j_x_array[time,:,:] =  np.load(outputfile+"/j_x"+"/intensity_{0:02d}-{1:02d}-{2:02d}.npy".format(i,j,time))
 			#[index_detec,x,y]
-			H_j[:,i,j] = calc_H_j_2(i,j,index_light,accum_time_array,phi_xi_j_array,phi_j_x_array)
-		
+			H_j[:,i,j] = calc_H_j_2(i,j,index_light,accum_time_array,phi_xi_j_array)
+			
 		for index_detec in tqdm(range(num_detector),leave=False):
 			np.save(outputfile+"/H_map_{0:02d}-{1:02d}".format(index_light,index_detec),H_j[index_detec,:,:])
 				#np.save(outputfile+"/H_map_{0:02d}-{1:02d}".format(index_light,index_detec),H_j)
-	"""
-	#並列処理
-	"""
-	for index_light in range(num_light):
-		process = Process(
-			target=calc_parallel,
-			kwargs={
-				'index_light':index_light,
-			})
-		process.start()
-	process.join()
-	"""
-	ilight = list(range(num_light))
-	with Pool(processes=4,initializer=tqdm.set_lock,initargs=(RLock(),)) as p:
-		result = p.map(calc_parallel,ilight)
-	print("\n"*4)
+
+
+	
 
 
 def test():
-	"""
-	for index_light in range(num_light):
-		process = Process(
-			target=calc_parallel,
-			kwargs={
-				'index_light':index_light,
-			})
-		process.start()
-	process.join()
-	"""
-	index_light = list(range(num_light))
-	with Pool(processes=4,initializer=tqdm.set_lock,initargs=(RLock(),)) as p:
-		result = p.map(calc_parallel,index_light)
+		for index_detec,detec in enumerate(pos_detector):
+			print(index_detec,detec)
+
 if __name__ == '__main__':
 	main()
 	#test()
